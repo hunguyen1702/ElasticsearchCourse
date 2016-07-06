@@ -1,0 +1,9 @@
+discovery.zen.minimum_master_nodes: 1
+discovery.zen.ping.multicast.enabled: false
+discovery.zen.ping.unicast.hosts: ["localhost"]
+
+network.host: 0.0.0.0
+http.cors.enabled: true
+http.cors.allow-origin: '*'
+script.inline: true
+script.indexed: true
