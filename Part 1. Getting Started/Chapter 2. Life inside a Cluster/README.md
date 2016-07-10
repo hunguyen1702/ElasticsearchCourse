@@ -11,6 +11,7 @@ Elasticsearch is distributed by nature: it knows how to manage multiple nodes to
 # An Empty Cluster
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0201.png)
+
 *Figure 1. A cluster with one empty node*
 
 - `Node`: A node is a running instance of Elasticsearch
@@ -37,12 +38,14 @@ To add data to Elasticsearch, we need an index—a place to store related data. 
 ***Run query in this section***
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0202.png)
+
 *Figure 2, “A single-node cluster with an index”.*
 
 
 # Add Failover
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0203.png)
+
 *Figure 3. A two-node cluster—all primary and replica shards are allocated*
 
 - Starting a Second Node: When you run a second node on the same machine, it automatically discovers and joins the cluster as long as it has the same `cluster.name` as the first node. However, for nodes running on different machines to join the same cluster, you need to configure a list of unicast hosts the nodes can contact to join the cluster.
@@ -55,6 +58,7 @@ To add data to Elasticsearch, we need an index—a place to store related data. 
 If we start a third node, our cluster reorganizes itself to look like Figure 4
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0204.png)
+
 *Figure 4. A three-node cluster—shards have been reallocated to spread the load*
 
 One shard each from Node 1 and Node 2 have moved to the new Node 3, and we have two shards per node, instead of three. This means that the hardware resources (CPU, RAM, I/O) of each node are being shared among fewer shards, allowing each shard to perform better.
@@ -70,6 +74,7 @@ The number of primary shards is fixed at the moment an index is created. Effecti
 The number of replica shards can be changed dynamically on a live cluster, allowing us to scale up or down as demand requires
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0205.png)
+
 *Figure 5. Increasing the number_of_replicas to 2*
 
 ***Run query in this section***
@@ -77,6 +82,7 @@ The number of replica shards can be changed dynamically on a live cluster, allow
 # Coping with Failure
 
 ![](https://www.elastic.co/guide/en/elasticsearch/guide/current/images/elas_0206.png)
+
 *Figure 6. Cluster after killing one node*
 
 - If the `master node` was killed -> elected a new `master node`
