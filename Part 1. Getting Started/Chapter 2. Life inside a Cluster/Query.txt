@@ -1,0 +1,34 @@
+DELETE /_all
+
+# Cluster Health
+
+GET /_cluster/health
+
+# Add an Index
+
+PUT /blogs
+{
+   "settings" : {
+      "number_of_shards" : 3,
+      "number_of_replicas" : 1
+   }
+}
+
+GET /_cluster/health
+
+# Add Failover (First run another node on same machine)
+
+GET /_cluster/health
+
+# Scale Horizontally (First run another node on same machine)
+
+PUT /blogs/_settings
+{
+   "number_of_replicas" : 2
+}
+
+GET /_cluster/health
+
+# Coping with Failure (First kill a node)
+
+GET /_cluster/health

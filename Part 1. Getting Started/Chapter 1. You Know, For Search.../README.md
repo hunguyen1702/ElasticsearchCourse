@@ -95,21 +95,31 @@ Notice that the path /megacorp/employee/1 contains three pieces of information:
 
 - `1`: The ID of this particular employee
 
+***Run query in this section***
+
 # Retrieving a Document
 
 We simply execute an HTTP GET request and specify the address of the document—the `index`, `type`, and `ID`. Using those three pieces of information, we can return the original JSON document. And the response contains some metadata about the document, and original JSON document as the `_source` field
+
+***Run query in this section***
 
 # Search Lite
 
 Using combination of the `index`, `type` and `_search` endpoint API instead of `ID`
 
+***Run query in this section***
+
 # Search with Query DSL
 
 Elasticsearch provides a rich, flexible, query language called the `query DSL` **(domain-specific language)** , which allows us to build much more complicated, robust queries.
 
+***Run query in this section***
+
 # More-Complicated Searches
 
 Let’s make the search a little more complicated. We still want to find all employees with a last name of Smith, but we want only employees who are older than 30. Our query will change a little to accommodate a filter, which allows us to execute structured searches efficiently
+
+***Run query in this section***
 
 # Full-Text Search
 
@@ -117,17 +127,25 @@ The searches so far have been simple: single names, filtered by age. Let’s try
 
 By default, Elasticsearch sorts matching results by their **relevance** score, that is, by how well each document matches the query
 
+***Run query in this section***
+
 # Phrase Search
 
 Finding individual words in a field is all well and good, but sometimes you want to match exact sequences of words or phrases
+
+***Run query in this section***
 
 # Highlighting Our Searches
 
 Many applications like to highlight snippets of text from each search result so the user can see why the document matched the query. Retrieving highlighted fragments is easy in Elasticsearch.
 
+***Run query in this section***
+
 # Analytics
 
 Finally, we come to our last business requirement: allow managers to run analytics over the employee directory. Elasticsearch has functionality called `aggregations`, which allow you to generate sophisticated analytics over your data. It is similar to `GROUP BY` in SQL, but much more powerful.
+
+***Run query in this section***
 
 # Distributed Nature
 
