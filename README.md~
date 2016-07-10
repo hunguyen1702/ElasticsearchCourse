@@ -13,11 +13,3 @@ Step 4: git pull origin env
 
 Step 5: cd Docker; docker-compose build; docker-compose up -d
 ```
-
-## Before each chapter 
-
-***If chapter folder has `query.txt` file***
-
-- Open web browser, access `http://0.0.0.0:5601/app/sense`
-- Copy all content in query into left pane of `sense`
-- Read through the `README.md` file in each chapter folder (Run query if necessary)
