@@ -17,6 +17,9 @@ PUT /blogs
 GET /_cluster/health
 
 # Add Failover (First run another node on same machine)
+# To run another node:
+# _ RUN: `docker exec -it docker_elasticsearch_1 bash`
+# _ RUN: `gosu elasticsearch bin/elasticsearch -Des.node.data=true -Des.node.master=false -Des.node.name=DataOne`
 
 GET /_cluster/health
 
