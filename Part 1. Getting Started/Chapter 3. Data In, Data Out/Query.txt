@@ -1,0 +1,237 @@
+DELETE /_all
+
+# Indexing a Document
+
+## Using Our Own ID
+
+PUT /website/blog/123
+{
+  "title": "My first blog entry",
+  "text":  "Just trying this out...",
+  "date":  "2014/01/01"
+}
+
+## Autogenerating IDs
+
+POST /website/blog/
+{
+  "title": "My second blog entry",
+  "text":  "Still trying this out...",
+  "date":  "2014/01/01"
+}
+
+GET /website/blog/_search
+
+# Retrieving a Document
+GET /website/blog/123?pretty
+
+GET /website/blog/124?pretty
+
+## Retrieving Part of a Document
+
+GET /website/blog/123?_source=title,text
+
+GET /website/blog/123?_source=title
+
+GET /website/blog/123/_source
+
+# Updating a Whole Document
+
+PUT /website/blog/123
+{
+  "title": "My first blog entry",
+  "text":  "I am starting to get the hang of this...",
+  "date":  "2014/01/02"
+}
+
+GET /website/blog/123
+
+# Creating a New Document
+
+POST /website/blog/
+{
+  "title": "Trying POST to create a new document",
+  "text":  "I am starting to get the hang of this...",
+  "date":  "2014/01/02"
+}
+
+GET /website/blog/_search
+
+PUT /website/blog/123?op_type=create
+{
+  "title": "This is a create existing document test",
+  "text":  "I am starting to get the hang of this...",
+  "date":  "2014/01/02"
+}
+
+
+PUT /website/blog/123/_create
+{
+  "title": "This is a create existing document test",
+  "text":  "I am starting to get the hang of this...",
+  "date":  "2014/01/02"
+}
+
+# Deleting a Document
+
+DELETE /website/blog/123
+
+GET /website/blog/_search
+
+# Optimistic Concurrency Control (Dealing with Conflict)
+
+PUT /website/blog/1/_create
+{
+  "title": "My first blog entry",
+  "text":  "Just trying this out..."
+}
+
+GET /website/blog/1
+
+PUT /website/blog/1?version=1
+{
+  "title": "My first blog entry",
+  "text":  "Starting to get the hang of this..."
+}
+
+## Using Versions from an External System
+
+PUT /website/blog/2?version=5&version_type=external
+{
+  "title": "My first external blog entry",
+  "text":  "Starting to get the hang of this..."
+}
+
+GET /website/blog/2
+
+PUT /website/blog/2?version=6&version_type=external
+{
+  "title": "My first external blog entry",
+  "text":  "This is a piece of cake..."
+}
+
+# Partial Updates to Documents
+
+POST /website/blog/1/_update
+{
+   "doc" : {
+      "tags" : [ "testing" ],
+      "views": 0
+   }
+}
+
+GET /website/blog/1
+
+## Using Scripts to Make Partial Updates
+
+POST /website/blog/1/_update
+{
+   "script" : "ctx._source.views+=1"
+}
+
+GET /website/blog/1
+
+POST /website/blog/1/_update
+{
+   "script" : "ctx._source.tags+=new_tag",
+   "params" : {
+      "new_tag" : "search"
+   }
+}
+
+GET /website/blog/1
+
+POST /website/blog/1/_update
+{
+   "script" : "ctx.op = ctx._source.views == count ? 'delete' : 'none'",
+    "params" : {
+        "count": 1
+    }
+}
+
+## Updating a Document That May Not Yet Exist
+
+POST /website/pageviews/1/_update
+{
+   "script" : "ctx._source.views+=1",
+   "upsert": {
+       "views": 1
+   }
+}
+
+GET /website/pageviews/1
+
+## Updates and Conflicts
+
+POST /website/pageviews/1/_update?retry_on_conflict=5
+{
+   "script" : "ctx._source.views+=1",
+   "upsert": {
+       "views": 0
+   }
+}
+
+# Retrieving Multiple Documents
+
+GET /_mget
+{
+   "docs" : [
+      {
+         "_index" : "website",
+         "_type" :  "blog",
+         "_id" :    2
+      },
+      {
+         "_index" : "website",
+         "_type" :  "pageviews",
+         "_id" :    1,
+         "_source": "views"
+      }
+   ]
+}
+
+GET /website/blog/_mget
+{
+   "docs" : [
+      { "_id" : 2 },
+      { "_type" : "pageviews", "_id" :   1 }
+   ]
+}
+
+GET /website/blog/_mget
+{
+  "ids": [
+    1,
+    2
+  ]
+}
+
+# Cheaper in Bulk
+
+POST /_bulk
+{"delete":{"_index":"website","_type":"blog","_id":"123"}}
+{"create":{"_index":"website","_type":"blog","_id":"123"}}
+{"title":"My first blog post"}
+{"index":{"_index":"website","_type":"blog"}}
+{"title":"My second blog post"}
+{"update":{"_index":"website","_type":"blog","_id":"123","_retry_on_conflict":3}}
+{"doc":{"title":"My updated blog post"}}
+
+
+POST /_bulk
+{"create":{"_index":"website","_type":"blog","_id":"123"}}
+{"title":"Cannot create - it already exists"}
+{"index":{"_index":"website","_type":"blog","_id":"123"}}
+{"title":"But we can update it"}
+
+## Don’t Repeat Yourself
+
+POST /website/_bulk
+{"index":{"_type":"log"}}
+{"event":"User logged in"}
+
+POST /website/log/_bulk
+{"index":{}}
+{"event":"User logged in"}
+{"index":{"_type":"blog"}}
+{"title":"Overriding the default type"}
