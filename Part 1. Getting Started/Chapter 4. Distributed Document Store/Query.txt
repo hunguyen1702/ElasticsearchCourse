@@ -1,0 +1,63 @@
+GET /_all
+
+DELETE /_all
+
+GET /_cluster/health
+
+# Routing Document to a Shard
+
+PUT /blog/page/1?routing=123
+{
+  "page_number": 1
+}
+
+PUT /blog/page/2?routing=123
+{
+  "page_number": 2
+}
+
+PUT /blog/page/3
+{
+  "page_number": 3
+}
+
+GET /blog/page/_search
+
+GET /blog/page/_search?routing=123
+
+GET /blog/page/1
+
+GET /blog/page/1?routing=123
+
+GET /blog/page/2?routing=123
+
+# Creating, Indexing, and Deleting a Document
+# Run/Stop a addition node to check index a document with 'consistency' parameter:
+# _ RUN: `docker exec -it docker_elasticsearch_1 bash`
+# _ RUN: `gosu elasticsearch bin/elasticsearch -Des.node.data=true -Des.node.master=false -Des.node.name=DataOne`
+
+PUT /blog/page/4?consistency=all
+{
+  "page_number": 4
+}
+
+GET /blog/page/4
+
+PUT /blog/page/4?consistency=all
+{
+  "page_number": 4
+}
+
+PUT /blog/page/5?consistency=one
+{
+  "page_number": 5
+}
+
+GET /blog/page/5
+
+PUT /blog/page/6?consistency=all&timeout=60s
+{
+  "page_number": 6
+}
+
+GET /blog/page/6

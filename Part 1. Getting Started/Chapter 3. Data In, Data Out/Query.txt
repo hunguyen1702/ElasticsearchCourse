@@ -51,8 +51,8 @@ GET /website/blog/123
 POST /website/blog/
 {
   "title": "Trying POST to create a new document",
-  "text":  "I am starting to get the hang of this...",
-  "date":  "2014/01/02"
+  "text":  "Still trying it out...",
+  "date":  "2014/01/03"
 }
 
 GET /website/blog/_search
@@ -94,6 +94,12 @@ PUT /website/blog/1?version=1
   "text":  "Starting to get the hang of this..."
 }
 
+PUT /website/blog/1?version=5
+{
+  "title": "My first blog entry",
+  "text":  "Starting to get the hang of this..."
+}
+
 ## Using Versions from an External System
 
 PUT /website/blog/2?version=5&version_type=external
@@ -103,6 +109,12 @@ PUT /website/blog/2?version=5&version_type=external
 }
 
 GET /website/blog/2
+
+PUT /website/blog/2?version=5&version_type=external
+{
+  "title": "My first external blog entry",
+  "text":  "This is a piece of cake..."
+}
 
 PUT /website/blog/2?version=6&version_type=external
 {
@@ -140,6 +152,14 @@ POST /website/blog/1/_update
 }
 
 GET /website/blog/1
+
+POST /website/blog/1/_update
+{
+   "script" : "ctx.op = ctx._source.views == count ? 'delete' : 'none'",
+    "params" : {
+        "count": 0
+    }
+}
 
 POST /website/blog/1/_update
 {
