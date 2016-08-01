@@ -1,0 +1,291 @@
+# Preparing
+
+DELETE /_all
+
+PUT /facebook
+{
+  "mappings": {
+    "post": {
+      "properties": {
+        "username": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "date":{
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "tags": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "text": {
+          "type": "string",
+          "analyzer": "english"
+        }
+      }
+    }
+  }
+}
+
+POST /_bulk
+{"index":{"_index":"facebook","_type":"post","_id":"1"}}
+{"from":"user1","date":"2014-01-14","tags":["eat","food"],"text":"I love all street food in the world"}
+{"index":{"_index":"facebook","_type":"post","_id":"2"}}
+{"from":"user2","date":"2014-01-15","text":"It's was so bored today"}
+{"index":{"_index":"facebook","_type":"post","_id":"3"}}
+{"from":"user1","date":"2014-01-01","tags":["hangout"],"text":"I am going to have a date tonight"}
+{"index":{"_index":"facebook","_type":"post","_id":"4"}}
+{"from":"user2","date":"2014-01-13","tags":["music", "love"],"text":"This song is so romantic"}
+{"index":{"_index":"facebook","_type":"post","_id":"5"}}
+{"from":"user3","date":"2014-01-03","text":"Home sick"}
+{"index":{"_index":"facebook","_type":"post","_id":"6"}}
+{"from":"user4","date":"2014-05-01","tags":["study"],"text":"I love studying Elasticsearch"}
+{"index":{"_index":"facebook","_type":"post","_id":"7"}}
+{"from":"user5","date":"2014-06-01","tags":["eat","food"],"text":"I love all street food in the world"}
+{"index":{"_index":"facebook","_type":"post","_id":"8"}}
+{"from":"user2","date":"2014-05-01","tags":["sport", "football"],"text":"I going to have football match tomorrow"}
+
+# Empty Search
+
+GET /f*/_search
+
+GET /f*/post/_search
+
+# Query DSL
+
+POST /facebook/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "match": {
+      "text": "I love"
+    }
+  }
+}
+
+# Queries and Filters
+
+POST /facebook/_search
+{
+    "query": {
+      "term": {
+        "from": "user1"
+      }
+    }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "from": "user1"
+        }
+      }
+    }
+  }
+}
+
+# Most Important Queries
+
+POST /_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "match": {
+      "text": "I love"
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "love user2",
+      "fields": [
+        "from",
+        "text"
+      ]
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "range": {
+      "date": {
+        "gte": "2014-02-01",
+        "lte": "2014-07-01"
+      }
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "term": {
+      "from": "user1"
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "terms": {
+      "from": [
+        "user3",
+        "user4"
+      ]
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "exists": {
+      "field": "tags"
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "missing": {
+      "field": "tags"
+    }
+  }
+}
+
+# Combining queries together
+
+POST /facebook/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "from": "user2"
+          }
+        }
+      ],
+      "should": [
+        {
+          "exists": {
+            "field": "tags"
+          }
+        }
+      ]
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "from": "user2"
+          }
+        }
+      ],
+      "should": [
+        {
+          "exists": {
+            "field": "tags"
+          }
+        },
+        {
+          "range": {
+            "date": {
+              "gte": "2014-01-01",
+              "lte": "2014-01-31"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+POST /facebook/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "from": "user2"
+          }
+        }
+      ],
+      "should": [
+        {
+          "exists": {
+            "field": "tags"
+          }
+        }
+      ],
+      "filter": {
+        "range": {
+          "date": {
+            "gte": "2014-01-01",
+            "lte": "2014-01-31"
+          }
+        }
+      }
+    }
+  }
+}
+
+# Validating Queries
+
+POST /facebook/_validate/query
+{
+  "query": {
+    "text": {
+      "match": "I love"
+    }
+  }
+}
+
+POST /facebook/_validate/query?explain
+{
+  "query": {
+    "text": {
+      "match": "I love"
+    }
+  }
+}
+
+POST /facebook/_validate/query?explain
+{
+  "query": {
+    "match": {
+      "text": "I love"
+    }
+  }
+}
+
