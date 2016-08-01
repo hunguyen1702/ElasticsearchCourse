@@ -39,7 +39,7 @@ However, Elasticsearch also ships with prepackaged analyzers that you can use di
 
 ### Testing Analyzers
 
- To better understand what is going on, you can use the analyze API to see how text is analyzed
+ To better understand what is going on, you can use the `analyze` API to see how text is analyzed
 
 ### Specifying Analyzers
 
@@ -91,7 +91,7 @@ The index attribute controls how the string will be indexed. It can contain one 
 
 ### Updating a Mapping
 
-**Although you can add to an existing mapping, you can’t change existing field mappings. **
+**Although you can add to an existing mapping, you can’t change existing field mappings**
 
 ### Testing the Mapping
 
