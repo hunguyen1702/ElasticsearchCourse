@@ -1,0 +1,211 @@
+# Preparing
+
+DELETE /_all
+
+POST /_bulk
+{"index": {"_index":"us", "_type":"user", "_id":"1"}}
+{"email":"john@smith.com","name":"John Smith","username":"@john"}
+{"index": {"_index":"gb", "_type":"user", "_id":"2"}}
+{"email":"mary@jones.com","name":"Mary Jones","username":"@mary"}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"3"}}
+{"date":"2014-09-13","name":"Mary Jones","tweet":"Elasticsearch means full text search has never been so easy","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"4"}}
+{"date":"2014-09-14","name":"John Smith","tweet":"@mary it is not just text, it does everything","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"5"}}
+{"date":"2014-09-15","name":"Mary Jones","tweet":"However did I manage before Elasticsearch?","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"6"}}
+{"date":"2014-09-16","name":"John Smith","tweet":"The Elasticsearch API is really easy to use","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"7"}}
+{"date":"2014-09-17","name":"Mary Jones","tweet":"The Query DSL is really powerful and flexible","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"8"}}
+{"date":"2014-09-18","name":"John Smith","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"9"}}
+{"date":"2014-09-19","name":"Mary Jones","tweet":"Geo-location aggregations are really cool","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"10"}}
+{"date":"2014-09-20","name":"John Smith","tweet":"Elasticsearch surely is one of the hottest new NoSQL products","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"11"}}
+{"date":"2014-09-21","name":"Mary Jones","tweet":"Elasticsearch is built for the cloud, easy to scale","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"12"}}
+{"date":"2014-09-22","name":"John Smith","tweet":"Elasticsearch and I have left the honeymoon stage, and I still love her.","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"13"}}
+{"date":"2014-09-23","name":"Mary Jones","tweet":"So yes, I am an Elasticsearch fanboy","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"14"}}
+{"date":"2014-09-24","name":"John Smith","tweet":"How many more cheesy tweets do I have to write?","user_id":1}
+
+
+# Instructrion
+
+GET /us,gb/_search?q=2014
+
+GET /us,gb/_search?q=2014-09-15
+
+GET /us,gb/_search?q=date:2014-09-15
+
+GET /us,gb/_search?q=date:2014
+
+GET /us,gb/_mapping/tweet
+
+#  Inverted Index
+
+PUT /example
+{
+  "mappings": {
+    "text":{
+      "properties": {
+        "text": {
+          "type": "string",
+          "analyzer": "whitespace"
+        }
+      }
+    }
+  }
+}
+
+GET /example/_mapping/text
+
+PUT /example/text/1
+{
+  "text": "The quick brown fox jumped over the lazy dog"
+}
+
+PUT /example/text/2
+{
+  "text": "Quick brown foxes leap over lazy dogs in summer"
+}
+
+GET /example/text/_search?q=+text:quick+text:brown
+
+GET /example/text/_search?q=+text:quick
+
+# Analysis and Analyzers
+
+### Testing Analyzers
+
+GET /_analyze
+{
+  "analyzer": "standard",
+  "text": "Set the shape to semi-transparent by calling set_trans(5)"
+}
+
+GET /_analyze
+{
+  "analyzer": "simple",
+  "text": "Set the shape to semi-transparent by calling set_trans(5)"
+}
+
+GET /_analyze
+{
+  "analyzer": "whitespace",
+  "text": "Set the shape to semi-transparent by calling set_trans(5)"
+}
+
+GET /_analyze
+{
+  "analyzer": "english",
+  "text": "Set the shape to semi-transparent by calling set_trans(5)"
+}
+
+# Mapping
+
+### Viewing the Mapping
+
+GET /gb/_mapping/tweet
+
+### Update the Mapping
+
+#PUT /gb/_mapping/tweet
+PUT /gb/tweet/_mapping  
+{
+  "properties": {
+    "tag": {
+      "type": "string",
+      "index": "not_analyzed"
+    }
+  }
+}
+
+# Complex Core Field Types
+
+### Multivalue Fields
+
+PUT /gb/tweet/100
+{
+  "date": "2014-09-17",
+  "name": "Mary Jones",
+  "tweet": "The Query DSL is really powerful and flexible",
+  "user_id": 2,
+  "tag": ["123", "abc"]
+}
+
+GET /gb/tweet/100
+
+### Empty Fields
+
+PUT /gb/tweet/200
+{
+  "date": "2014-09-17",
+  "name": "Mary Jones",
+  "tweet": "The Query DSL is really powerful and flexible",
+  "user_id": 2,
+  "tag": null
+}
+
+GET /gb/tweet/200
+
+### Multilevel Objects
+
+PUT /us/_mapping/tweet_multi
+{
+  "properties": {
+    "tweet": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "age": {
+          "type": "long"
+        },
+        "name": {
+          "type": "object",
+          "properties": {
+            "full": {
+              "type": "string"
+            },
+            "first": {
+              "type": "string"
+            },
+            "last": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+PUT /us/tweet_multi/100
+{
+    "tweet":            "Elasticsearch is very flexible",
+    "user": {
+        "id":           "@johnsmith",
+        "gender":       "male",
+        "age":          26,
+        "name": {
+            "full":     "John Smith",
+            "first":    "John",
+            "last":     "Smith"
+        }
+    }
+}
+
+GET /us/_mapping/tweet_multi
+
+GET /us/tweet_multi/100
