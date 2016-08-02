@@ -1,0 +1,262 @@
+# Preparing
+
+DELETE /_all
+
+POST /_bulk
+{"index": {"_index":"us", "_type":"user", "_id":"1"}}
+{"email":"john@smith.com","name":"John Smith","username":"@john"}
+{"index": {"_index":"gb", "_type":"user", "_id":"2"}}
+{"email":"mary@jones.com","name":"Mary Jones","username":"@mary"}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"3"}}
+{"date":"2014-09-13","name":"Mary Jones","tweet":"Elasticsearch means full text search has never been so easy","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"4"}}
+{"date":"2014-09-14","name":"John Smith","tweet":"@mary it is not just text, it does everything","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"5"}}
+{"date":"2014-09-15","name":"Mary Jones","tweet":"However did I manage before Elasticsearch?","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"6"}}
+{"date":"2014-09-16","name":"John Smith","tweet":"The Elasticsearch API is really easy to use","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"7"}}
+{"date":"2014-09-17","name":"Mary Jones","tweet":"The Query DSL is really powerful and flexible","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"8"}}
+{"date":"2014-09-18","name":"John Smith","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"9"}}
+{"date":"2014-09-19","name":"Mary Jones","tweet":"Geo-location aggregations are really cool","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"10"}}
+{"date":"2014-09-20","name":"John Smith","tweet":"Elasticsearch surely is one of the hottest new NoSQL products","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"11"}}
+{"date":"2014-09-21","name":"Mary Jones","tweet":"Elasticsearch is built for the cloud, easy to scale","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"12"}}
+{"date":"2014-09-22","name":"John Smith","tweet":"Elasticsearch and I have left the honeymoon stage, and I still love her.","user_id":1}
+{"index": {"_index":"gb", "_type":"tweet", "_id":"13"}}
+{"date":"2014-09-23","name":"Mary Jones","tweet":"So yes, I am an Elasticsearch fanboy","user_id":2}
+{"index": {"_index":"us", "_type":"tweet", "_id":"14"}}
+{"date":"2014-09-24","name":"John Smith","tweet":"How many more cheesy tweets do I have to write?","user_id":1}
+
+# Sorting
+
+GET /_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "user_id": 1
+        }
+      }
+    }
+  }
+}
+
+# Sorting by Field Values
+
+# GET /us/tweet/_search?track_scores
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "user_id": 1
+        }
+      }
+    }
+  },
+  "sort": [
+    {
+      "date": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# Multilevel Sorting
+
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "tweet": "manage text search"
+        }
+      },
+      "filter": {
+        "term": {
+          "user_id": 2
+        }
+      }
+    }
+  },
+  "sort": [
+    {
+      "date": {
+        "order": "desc"
+      }
+    },
+    {
+      "_score": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "tweet": "manage text search"
+        }
+      },
+      "filter": {
+        "term": {
+          "user_id": 2
+        }
+      }
+    }
+  },
+  "sort": [
+    {
+      "_score": {
+        "order": "desc"
+      }
+    },
+    {
+      "date": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+
+# Sorting on Multivalue Fields
+
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "tweet": "manage text search"
+        }
+      },
+      "filter": {
+        "term": {
+          "user_id": 2
+        }
+      }
+    }
+  },
+  "sort": [
+    {
+      "_score": {
+        "order": "desc"
+      }
+    },
+    {
+      "date": {
+        "order": "desc",
+        "mode": "min"
+      }
+    }
+  ]
+}
+
+# String Sorting and Multifields
+
+PUT /us,gb/tweet/_mapping
+{
+  "properties": {
+    "tweet": {
+      "type": "string",
+      "fields": {
+        "raw": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}
+
+GET /us,gb/_mapping/tweet
+### run the `_bulk` query in the `Preparing` section again to reindex all documents
+
+GET /us,gb/tweet/_search
+
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "match": {
+      "tweet": "elasticsearch"
+    }
+  },
+  "sort": "tweet.raw"
+}
+
+GET /us,gb/tweet/_search
+{
+  "query": {
+    "match": {
+      "tweet": "elasticsearch"
+    }
+  },
+  "sort": {
+    "tweet.raw": {
+      "order": "asc"
+    }
+  }
+}
+
+# What Is Relevance?
+
+### Understanding the Score
+
+GET /us,gb/tweet/_search?explain
+{
+  "query": {
+    "match": {
+      "tweet": "honeymoon"
+    }
+  }
+}
+
+GET /us/tweet/10/_explain
+{
+  "query": {
+    "match": {
+      "tweet": "honeymoon"
+    }
+  }
+}
+
+GET /us/tweet/12/_explain
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "user_id": 2
+        }
+      },
+      "must": {
+        "match": {
+          "tweet": "honeymoon"
+        }
+      }
+    }
+  }
+}
+
+GET /gb/tweet/5/_explain
+{
+  "query": {
+    "match": {
+      "tweet": "honeymoon"
+    }
+  }
+}
+
