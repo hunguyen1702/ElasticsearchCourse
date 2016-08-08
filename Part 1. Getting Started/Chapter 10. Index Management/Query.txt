@@ -1,0 +1,483 @@
+# Preparing
+
+DELETE /_all
+
+# Create an Index
+
+PUT /index1
+{"settings":{},"mappings":{"type1":{},"type2":{}}}
+
+PUT /index2
+{"settings":{},"mappings":{"type3":{},"type4":{}}}
+
+PUT /index3
+{"settings":{},"mappings":{"type5":{},"type6":{}}}
+
+PUT /index4
+{"settings":{},"mappings":{"type7":{},"type8":{}}}
+
+GET /_mapping
+
+# Delete an Index
+
+DELETE /index1
+
+DELETE /index2,index3
+
+DELETE /index*
+
+GET /_mapping
+
+# Index Settings
+
+PUT /index1
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  }
+}
+
+PUT /index1/_settings
+{
+  "number_of_replicas": 1
+}
+
+PUT /index1/_settings
+{
+  "number_of_shards": 5
+}
+
+GET /index1
+
+# Configuring Analyzers
+
+DELETE /_all
+
+PUT /en_doc
+{"settings":{"analysis":{"analyzer":{"en_analyzer":{"type":"standard","stopwords":"_english_"}}}}}
+
+GET /en_doc/_analyze?analyzer=en_analyzer
+{
+  "text": "I have to learn more and more"
+}
+
+# Custom Analyzers
+
+PUT /vn_doc
+{
+  "settings": {
+    "analysis": {
+      "char_filter": {
+        "vn_filter": {
+          "type": "mapping",
+          "mappings": [
+            "&=>và",
+            "ko=>không"
+          ]
+        }
+      },
+      "filter": {
+        "vn_stopword":{
+          "type": "stop",
+          "stopwords": ["một"]
+        }
+      },
+      "analyzer": {
+        "vn_analyzer": {
+          "type": "custom",
+          "char_filter": ["html_strip", "vn_filter"],
+          "tokenizer": "standard",
+          "filter": ["lowercase", "vn_stopword"]
+        }
+      }
+    }
+  }
+}
+
+GET /vn_doc/_analyze?analyzer=vn_analyzer
+{
+  "text": "Hôm nay trời rất đẹp & nhiều mây, ko có lấy một tia nắng"
+}
+
+PUT /vn_doc/_mapping/news
+{
+  "properties": {
+    "title": {
+      "type": "string",
+      "analyzer": "vn_analyzer"
+    }
+  }
+}
+
+# Avoiding Type Gotchas
+
+DELETE /_all
+
+PUT /product
+{"mappings":{"phone":{"properties":{"product_id":{"type":"string", "index": "not_analyzed"}}},"computer":{"properties":{"product_id":{"type":"integer"}}}}}
+
+# The Root Object
+
+### Metadata: _source Field
+
+DELETE /_all
+
+PUT /logs
+{
+  "mappings": {
+    "log": {
+      "_source": {
+        "enabled": false
+      },
+      "properties": {
+        "date": {
+          "type": "date",
+          "format": "date_optional_time"
+        },
+        "level": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+PUT /logs/log/1?op_type=create
+{
+  "date": "2016-08-01",
+  "level": "DEBUG",
+  "content": "This is a log at DEBUG level"
+}
+
+GET /logs/log/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+# Metadata: _all Field
+
+DELETE /_all
+
+PUT /logs
+{
+  "mappings": {
+    "log": {
+      "_all": {
+        "enabled": false
+      },
+      "properties": {
+        "date": {
+          "type": "date",
+          "format": "date_optional_time"
+        },
+        "level": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+PUT /logs/log/1?op_type=create
+{
+  "date": "2016-08-01",
+  "level": "DEBUG",
+  "content": "This is a log at DEBUG level"
+}
+
+PUT /logs/log/2?op_type=create
+{
+  "date": "2016-08-02",
+  "level": "WARN",
+  "content": "This is a log at WARN level"
+}
+
+GET /_search
+{
+  "query": {
+    "match": {
+      "_all": "DEBUG"
+    }
+  }
+}
+
+DELETE /_all
+
+PUT /logs
+{
+  "mappings": {
+    "log": {
+      "include_in_all": false,
+      "properties": {
+        "date": {
+          "type": "date",
+          "format": "date_optional_time"
+        },
+        "level": {
+          "type": "string",
+          "index": "not_analyzed",
+          "include_in_all": true
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+PUT /logs/log/1?op_type=create
+{
+  "date": "2016-08-01",
+  "level": "DEBUG",
+  "content": "This is a log at DEBUG level"
+}
+
+PUT /logs/log/2?op_type=create
+{
+  "date": "2016-08-02",
+  "level": "WARN",
+  "content": "This is a log at WARN level"
+}
+
+GET /logs/log/_search?q=WARN
+
+GET /logs/log/_search?q=is
+
+DELETE /_all
+
+PUT /logs
+{
+  "mappings": {
+    "log": {
+      "_all": {
+        "analyzer": "whitespace"
+      }, 
+      "include_in_all": false,
+      "properties": {
+        "date": {
+          "type": "date",
+          "format": "date_optional_time"
+        },
+        "level": {
+          "type": "string",
+          "index": "not_analyzed",
+          "include_in_all": true
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+# Dynamic Mapping
+
+PUT /paper_news
+{
+  "mappings": {
+    "article": {
+      "dynamic": "strict",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "writer": {
+          "type": "object",
+          "dynamic": true
+        }
+      }
+    }
+  }
+}
+
+PUT /paper_news/article/1/_create
+{
+  "title": "1Data is the new trend",
+  "writer": {
+    "name": "hunguyen"
+  },
+  "date": "2016-08-08"
+}
+
+PUT /paper_news/article/1/_create
+{
+  "title": "1Data is the new trend",
+  "writer": {
+    "name": "hunguyen"
+  }
+}
+
+# Customizing Dynamic Mapping
+
+### date_detection
+
+POST /birthday_notes/note
+{
+  "date": "1994-01-01",
+  "note": "1994-01-01"
+}
+
+GET /birthday_notes/note/_mapping
+
+POST /birthday_notes/note
+{
+  "date": "1994-01-01",
+  "note": "this is Hung's bitrhday"
+}
+
+DELETE /_all
+
+PUT /birthday_notes
+{
+  "mappings": {
+    "note": {
+      "date_detection": false, 
+      "properties": {
+        "date": {
+          "type": "date"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+POST /birthday_notes/note
+{
+  "date": "1994-01-01",
+  "note": "1994-01-01"
+}
+
+POST /birthday_notes/note
+{
+  "date": "1994-01-01",
+  "note": "this is Hung's bitrhday"
+}
+
+### dynamic_templates
+
+DELETE /_all
+
+PUT /paper_news
+{
+  "mappings": {
+    "article": {
+      "dynamic_templates": [
+        {
+          "sp": {
+            "match_mapping_type": "string",
+            "match": "*_sp",
+            "mapping": {
+              "type": "string",
+              "analyzer": "simple"
+            }
+          }
+        },
+        {
+          "en": {
+            "match_mapping_type": "string",
+            "match": "*",
+            "mapping": {
+              "type": "string",
+              "analyzer": "standard"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+PUT /paper_news/article/1
+{
+  "title": "This is a sunny and beautiful day Hung_Nguyen",
+  "title_sp": "This is a sunny and beautiful day Hung_Nguyen"
+}
+
+GET /paper_news/article/_mapping
+
+POST /paper_news/article/_search
+{
+  "query": {
+    "match": {
+      "title_sp": "nguyen"
+    }
+  }
+}
+
+# Default Mapping
+
+PUT /people
+{
+  "mappings": {
+    "_default_": {
+      "_all": {
+        "enabled": false
+      },
+      "_source": {
+        "enabled": false
+      }
+    },
+    "engineer": {
+      "_source": {
+        "enabled": true
+      }
+    }
+  }
+}
+
+# Index Aliases and Zero Downtime
+
+PUT /crawler_v1
+
+PUT /crawler_v1/_alias/crawler
+
+GET /*/_alias/crawler
+
+GET /crawler_v1/_alias/*
+
+PUT /crawler_v2
+{
+  "mappings": {
+    "news": {
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+POST /_aliases
+{
+  "actions": [
+    {
+      "add": {
+        "index": "crawler_v2",
+        "alias": "crawler"
+      },
+      "remove": {
+        "index": "crawler_v1",
+        "alias": "crawler"
+      }
+    }
+  ]
+}
+
+GET /*/_alias/crawler
