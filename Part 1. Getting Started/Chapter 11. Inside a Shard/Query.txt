@@ -1,0 +1,49 @@
+# Preparing
+
+DELETE /*
+
+# Near Real-Time Search
+
+### refresh API
+
+PUT /logs
+{
+  "settings": {
+    "refresh_interval": "1m"
+  },
+  "mappings": {
+    "log2016": {
+      "dynamic": "strict",
+      "properties": {
+        "content": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+PUT /logs/log2016/1
+{
+  "content": "this cannot be search yet"
+}
+
+POST /logs/log2016/_search
+{
+  "query": {
+    "match": {
+      "content": "search"
+    }
+  }
+}
+
+POST /logs/_refresh
+
+POST /logs/log2016/_search
+{
+  "query": {
+    "match": {
+      "content": "search"
+    }
+  }
+}
